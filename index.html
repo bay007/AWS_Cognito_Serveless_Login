@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AWS SDK for JavaScript - Sample Application</title>
+
+<script src="aws-cognito-sdk.min.js"></script>
+<script src="amazon-cognito-identity.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+</head>
+<body class="container-fluid">
+	
+	<div id="loginbox" style="margin-top:50px;" class="mainbox col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">                    
+		<div class="panel panel-info" >
+			<div class="panel-heading">
+				<div class="panel-title">Sign In</div>
+				<div style="float:right; font-size: 80%; position: relative; top:-10px"><a href="#">Forgot password?</a></div>
+			</div>     
+
+			<div style="padding-top:30px" class="panel-body" >
+				<div style="display:none" id="login-alert" class="alert alert-danger col-sm-12"></div>
+				
+				<form id="loginform" class="form-horizontal" role="form">
+					<div style="margin-bottom: 25px" class="input-group">
+						<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+						<input id="login-username" type="email" class="form-control" name="username" placeholder="email">                                        
+					</div>
+						
+					<div style="margin-bottom: 25px" class="input-group">
+						<span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+						<input id="login-password" type="password" class="form-control" name="password" placeholder="password">
+					</div>
+
+					<div style="margin-top:10px" class="form-group">
+						<!-- Button -->
+
+						<div class="col-sm-12 controls">
+							<a id="btn-login" href="#" class="btn btn-success" onclick="loginUser()">Login  </a>
+							<a id="btn-logout" href="#" class="btn btn-danger" onclick="logoutUser()">Logout</a>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<div class="col-md-12 control">
+							<div style="border-top: 1px solid#888; padding-top:15px; font-size:85%" >
+								Don't have an account! 
+								<a href="#" onClick="$('#loginbox').hide(); $('#signupbox').show()">
+								Sign Up Here
+								</a>
+							</div>
+						</div>
+					</div>    
+				</form>   
+				<hr>
+				<ol id="atrributesUser"></ol>
+			</div>                     
+		</div>  
+	</div>
+	
+	<div id="signupbox" style="display:none; margin-top:50px" class="mainbox col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+		<div class="panel panel-info">
+			<div class="panel-heading">
+				<div class="panel-title">Sign Up</div>
+				<div style="float:right; font-size: 85%; position: relative; top:-10px"><a id="signinlink" href="#" onclick="$('#signupbox').hide(); $('#loginbox').show()">Sign In</a></div>
+			</div>  
+			<div class="panel-body" >
+				<form id="signupform" class="form-horizontal" role="form">
+					
+					<div id="signupalert" style="display:none" class="alert alert-danger">
+						<p>Error:</p>
+						<span></span>
+					</div>
+
+					<div class="form-group">
+						<label for="email" class="col-md-3 control-label">Email</label>
+						<div class="col-md-9">
+							<input type="email" id="signin-email" class="form-control" name="email" placeholder="Email Address">
+						</div>
+					</div>
+						
+					<div class="form-group">
+						<label for="nickname" class="col-md-3 control-label">Complete Name</label>
+						<div class="col-md-9">
+							<input type="text" id="signin-nickname" class="form-control" name="nickname" placeholder="Complete Name">
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label for="signin-telephone" class="col-md-3 control-label">Telefono</label>
+						<div class="col-md-9">
+							<input type="tel" id="signin-telephone" class="form-control" name="signin-telephone" placeholder="55 14 58 58 41">
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label for="signin-password" class="col-md-3 control-label">Password</label>
+						<div class="col-md-9">
+							<input type="password" id="signin-password" class="form-control" name="signin-password" required>
+						</div>
+					</div>
+						
+					<div class="form-group">
+						<!-- Button -->                                        
+						<div class="col-md-offset-3 col-md-9">
+							<button id="btn-signup" type="button" class="btn btn-info" onClick="registerUser()" ><i class="icon-hand-right"></i> &nbsp Sign Up</button>
+						</div>
+					</div>
+				</form>
+			 </div>
+		</div>
+	</div> 
+	
+	
+	  
+	<div class="mainbox col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+		<div class="panel panel-info">
+			<div class="panel-heading">
+				<div class="panel-title">User Confirmation</div>
+			</div>
+		
+			<div class="panel-body" >
+				<form  class="form-horizontal" role="form">
+					<div class="form-group">
+						<label for="confirmation-username" class="col-md-3 control-label">Email</label>
+						<div class="col-md-9">
+							<input type="email" id="confirmation-username" class="form-control" name="confirmation-username" required>
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label for="confirmation-code" class="col-md-3 control-label">Code confrmation</label>
+						<div class="col-md-9">
+							<input type="number" id="confirmation-code" class="form-control" name="confirmation-code">
+						</div>
+					</div>
+					
+					<div class="col-md-offset-3 col-md-3">
+						<button id="btn-confirmarRegistro" type="button" class="btn btn-primary" onclick="confirmUser()">Confirmar registro</button>
+					</div>                                
+					<div class="col-md-offset-3 col-md-3">
+						<button id="btn-resendConfirmationCode" type="button" class="btn btn-primary" onclick="resendConfirmationCode()">Reenviar codigo</button>
+					</div>                                
+				</form>
+			</div>	
+		</div>
+	</div>
+	
+	
+	<div class="mainbox col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+		<div class="panel panel-info">
+			<div class="panel-heading">
+				<div class="panel-title">Recuperar Password</div>
+			</div>
+		
+			<div class="panel-body" >
+				<form  class="form-horizontal" role="form">
+					<div class="form-group">
+						<label for="retrieve-username" class="col-md-3 control-label">Email</label>
+						<div class="col-md-9">
+							<input type="email" id="retrieve-username" class="form-control" name="retrieve-username" required>
+						</div>
+					</div>
+					
+					<div class="col-md-offset-3 col-md-3">
+						<button id="btn-confirmarRetrieve" type="button" class="btn btn-primary" onclick="retrievePassword()">Recuperar</button>
+					</div>                                
+					
+				</form>
+			</div>	
+		</div>
+	</div>
+	
+	<script>
+		var userPoolId = 'us-east-1_laa043X2Q';
+		var appClientId = '638fg3bnv12tlsc2tb39b3falk';
+		
+		var poolData = {
+			UserPoolId: userPoolId,
+			ClientId: appClientId
+		};
+		var userPool = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserPool(poolData);
+
+		function getAtrubutes(){
+	
+			let cognitoUser = userPool.getCurrentUser();
+				cognitoUser.getSession(function(err, session) {
+					if (err) {
+						console.log(err);
+						return alert(err);
+					}
+					cognitoUser.getUserAttributes(function(err, result) {
+						if (err) {
+							console.error(err);
+							return alert(err);
+						}
+						let userAttributes=$('#atrributesUser');
+						for (i = 0; i < result.length; i++) {
+							userAttributes.append('<li>attribute ' + result[i].getName() + ' has value ' + result[i].getValue()+'</li>');
+						}
+					});
+				});
+		}
+		
+		function logoutUser(){
+			let cognitoUser = userPool.getCurrentUser();
+			if (cognitoUser != null) {
+				cognitoUser.signOut();
+
+				if(getLoggedUser()!=true){
+					console.log("Sesion finalizada para "+cognitoUser.username);
+					$('#atrributesUser').children().remove();
+				}
+			}
+			return false;
+		}
+		
+		function getLoggedUser(){
+			let cognitoUser = userPool.getCurrentUser();
+
+			if (cognitoUser != null) {
+				cognitoUser.getSession(function(err, session) {
+					if (err) {
+						console.log(err);
+						return alert(err);
+					}
+					return session.isValid();
+				});
+			}
+		}
+		
+		function loginUser() {
+			let username=$("#login-username").val().trim();
+			let password=$("#login-password").val().trim();
+			
+			if((username=="")||(password=="")){
+				$("#login-username").val().trim()==""?$("#login-username").val(""):$("#login-username").val($("#login-username").val().trim());
+				$("#login-password").val().trim()==""?$("#login-password").val(""):$("#login-password").val($("#login-password").val().trim());
+				return alert("Falta agregar datos");
+			}
+			
+			let authData = {
+			Username: username,
+			Password: password
+			};
+
+			let authDetails = new AWSCognito.CognitoIdentityServiceProvider.AuthenticationDetails(authData);
+
+			let userData = {
+			Username: username,
+			Pool: userPool
+			};
+			
+			let cognitoUser = new AWSCognito.CognitoIdentityServiceProvider.CognitoUser(userData);
+
+			cognitoUser.authenticateUser(authDetails, {
+				onSuccess: function (result) {
+					let username=$("#login-username").val().trim();
+					console.log('access token + ' + result.getAccessToken().getJwtToken());
+					getAtrubutes(username);
+				},
+		 
+				onFailure: function(err) {
+					console.error(err);
+				},
+				
+				mfaRequired: function(codeDeliveryDetails) {
+					var verificationCode = prompt('Please input verification code' ,'').trim();
+					cognitoUser.sendMFACode(verificationCode, this);
+				},
+				
+				newPasswordRequired: function(userAttributes, requiredAttributes) {
+					// User was signed up by an admin and must provide new
+					// password and required attributes, if any, to complete
+					// authentication.
+
+					// the api doesn't accept this field back
+					delete userAttributes.email_verified;
+					
+					var newPassword = prompt('Enter new password ' ,'').trim();
+					userAttributes={ 'userAttributes.name': username, 'userAttributes.email':username};
+					
+					// Get these details and call
+					cognitoUser.completeNewPasswordChallenge(newPassword, userAttributes, this);
+				}
+			});
+		}
+		
+		function registerUser() {
+			let attributeList = [];
+			
+			let email = $('#signin-email').val().trim();
+			let telephone = $('#signin-telephone').val().trim();
+			let nickname = $("#signin-nickname").val().trim();
+			let password = $("#signin-password").val().trim();
+			
+			let dataEmail = {
+				Name : 'email',
+				Value : email
+			};
+			
+			let dataPhoneNumber = {
+				Name : 'phone_number',
+				Value : '+521'+telephone
+			};
+			
+			let dataName = {
+				Name :'name',
+				Value : email
+			};
+			
+			let dataNickname = {
+				Name :'nickname',
+				Value : nickname
+			};
+			
+			
+			let attributeEmail = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataEmail);
+			let attributePhoneNumber = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataPhoneNumber);
+			let attributeName = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataName);
+			let attributeNickname = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataNickname);
+
+			attributeList.push(attributeEmail);
+			attributeList.push(attributePhoneNumber);
+			attributeList.push(attributeName);
+			attributeList.push(attributeNickname);
+			
+
+			userPool.signUp(email, password, attributeList, null, function(err, result){
+				if (err) {
+					console.error(err);
+					return alert(err);
+				}
+				cognitoUser = result.user;
+				console.log('user name is ' + cognitoUser.getUsername());
+			});
+		}
+		
+		function confirmUser(){
+			let username = $('#confirmation-username').val().trim();
+			let confirmationCode = $('#confirmation-code').val().trim();
+			
+			if(username==""||confirmationCode==""){
+				return alert("Ingrese los datos");
+			}
+			
+			let userData = {
+			Username: username,
+			Pool: userPool
+			};
+			
+			let cognitoUser = new AWSCognito.CognitoIdentityServiceProvider.CognitoUser(userData);
+			
+			cognitoUser.confirmRegistration(confirmationCode, true, function(err, result) {
+                if (err) {
+                    console.error(err);
+                    return alert(err);
+                }
+                alert(result);
+            });
+		
+		}
+	
+		function resendConfirmationCode(){
+			let username = $('#confirmation-username').val().trim();
+			if(username==""){
+				return alert("Ingrese un usuario");
+			}
+			
+			
+			let userData = {
+			Username: username,
+			Pool: userPool
+			};
+			
+			let cognitoUser = new AWSCognito.CognitoIdentityServiceProvider.CognitoUser(userData);
+		
+			 cognitoUser.resendConfirmationCode(function(err, result) {
+                if (err) {
+				console.error(err);
+                    return alert(err);
+                   }
+                   alert(result);
+            });
+		}
+		
+		function retrievePassword(){
+			let username = $('#retrieve-username').val().trim();
+			if(username==""){
+				return alert("Ingrese un usuario");
+			}
+			
+			let userData = {
+			Username: username,
+			Pool: userPool
+			};
+			
+			let cognitoUser = new AWSCognito.CognitoIdentityServiceProvider.CognitoUser(userData);
+			
+			 cognitoUser.forgotPassword({
+				onSuccess: function (result) {
+					console.log('call result: ' + result);
+				},
+				onFailure: function(err) {
+					console.log(err);
+					alert(err);
+				},
+				inputVerificationCode() {
+					var verificationCode = prompt('Please input verification code ' ,'').trim();
+					var newPassword = prompt('Enter new password ' ,'').trim();
+					cognitoUser.confirmPassword(verificationCode, newPassword, this);
+				}
+			});
+		}
+	</script>
+
+</body>
+</html>
